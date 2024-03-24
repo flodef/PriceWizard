@@ -93,9 +93,9 @@ export function CRA() {
           <Switch className="flex mx-2" checked={isSeller} onChange={() => setIsSeller(!isSeller)} />
           <Text>Acheteur</Text>
         </Flex>
-        <Title className='mt-4'>Nom {!isSeller ? 'du vendeur' : "de l'acheteur"}</Title>
-        <TextInput className="w-40" placeholder="Nom du vendeur" value={otherName} onValueChange={setOtherName} />
-        <Title className='mt-4'>Ancienneté {otherName ? 'de ' + otherName : !isSeller ? 'du vendeur' : "de l'acheteur"}</Title>
+        <Title className='mt-4'>Nom {!isSeller ? 'de l'acheteur' : "du vendeur"}</Title>
+        <TextInput className="w-40" placeholder="Nom de l'acheteur" value={otherName} onValueChange={setOtherName} />
+        <Title className='mt-4'>Ancienneté {otherName ? 'de ' + otherName : !isSeller ? 'de l'acheteur' : "du vendeur"}</Title>
         <DatePicker
           className="w-40"
           placeholder="Date de création"
@@ -106,9 +106,9 @@ export function CRA() {
           onValueChange={(d) => setOtherDate(convertDate(d))}
         />
         <Title className='mt-4 hidden'>Ratio : {otherDate && myDate ? (getDays(otherDate) / getDays(myDate)).toFixed(2) : 1}</Title>
-        <Title className='mt-4'>Prix (en DU)</Title>
+        <Title className='mt-4'>Prix de ref. (en DUs)</Title>
         <NumberInput className="w-40" style={{ width: 160 }} min={0} value={price} onValueChange={setPrice} />
-        <Title className='mt-4'>Réduction (en %)</Title>
+        <Title className='mt-4'>Réduction newbie (en %)</Title>
         <NumberInput
           className="w-40"
           style={{ width: 160 }}
@@ -118,7 +118,7 @@ export function CRA() {
           value={discount}
           onValueChange={setDiscount}
         />
-        <Title className='mt-4'>Prix final : {getFinalPrice(isSeller ? myDate : otherDate).toFixed(2)}</Title>
+        <Title className='mt-4'>Prix corrigé : {getFinalPrice(isSeller ? myDate : otherDate).toFixed(2)}</Title>
       </Card>
       <Flex className="w-8 h-8" style={{ visibility: 'hidden' }}>
         <Title>xxx</Title>
@@ -130,7 +130,7 @@ export function CRA() {
             <TableHead>
               <TableRow>
                 <TableHeaderCell>Nom</TableHeaderCell>
-                <TableHeaderCell>Prix final</TableHeaderCell>
+                <TableHeaderCell>Prix corrigé</TableHeaderCell>
                 <TableHeaderCell>Date création</TableHeaderCell>
                 <TableHeaderCell>Nombre de DUs</TableHeaderCell>
                 <TableHeaderCell></TableHeaderCell>
