@@ -54,6 +54,7 @@ export function CRA() {
 
   const getFinalPrice = (date: string) => {
     if (!date) return price;
+    if (!myDate) return;
     const ratio = date ? !isSeller ? getDays(date) / getDays(myDate) : getDays(date) / getDays(otherDate) : 1;
     return (1 - discount / 100) * price + (discount / 100) * price * ratio;
   };
@@ -93,9 +94,9 @@ export function CRA() {
           <Switch className="flex mx-2" checked={isSeller} onChange={() => setIsSeller(!isSeller)} />
           <Text>Acheteur</Text>
         </Flex>
-        <Title className='mt-4'>Nom {!isSeller ? 'de l'acheteur' : "du vendeur"}</Title>
+        <Title className='mt-4'>Nom {!isSeller ? 'de l\'acheteur' : "du vendeur"}</Title>
         <TextInput className="w-40" placeholder="Nom de l'acheteur" value={otherName} onValueChange={setOtherName} />
-        <Title className='mt-4'>Ancienneté {otherName ? 'de ' + otherName : !isSeller ? 'de l'acheteur' : "du vendeur"}</Title>
+        <Title className='mt-4'>Ancienneté {otherName ? 'de ' + otherName : !isSeller ? 'de l\'acheteur' : "du vendeur"}</Title>
         <DatePicker
           className="w-40"
           placeholder="Date de création"
@@ -118,7 +119,7 @@ export function CRA() {
           value={discount}
           onValueChange={setDiscount}
         />
-        <Title className='mt-4'>Prix corrigé : {getFinalPrice(isSeller ? myDate : otherDate).toFixed(2)}</Title>
+        <Title className='mt-4'>Prix corrigé : {getFinalPrice(isSeller ? myDate : otherDate)?.toFixed(2)}</Title>
       </Card>
       <Flex className="w-8 h-8" style={{ visibility: 'hidden' }}>
         <Title>xxx</Title>
@@ -141,8 +142,8 @@ export function CRA() {
               {friends.map((friend, index) => (
                 <TableRow key={index}>
                   <TableCell>{friend.name} </TableCell>
-                  <TableCell>{getFinalPrice(friend.date).toFixed(2)}</TableCell>
-                  <TableCell>{new Date(friend.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{getFinalPrice(friend.date)?.toFixed(2)}</TableCell>
+                  <TableCell>{new Date(friend.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</TableCell>
                   <TableCell>{getDays(friend.date)} DUs créés</TableCell>
                   {index >= baseFriends.length && (
                     <Flex className="py-1">
