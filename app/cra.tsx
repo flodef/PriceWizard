@@ -54,7 +54,7 @@ export function CRA() {
   const [isSeller, setIsSeller] = useLocalStorage('isSeller', true);
   const [otherName, setOtherName] = useState('');
   const [otherDate, setOtherDate] = useState('');
-  const [friends, setFriends] = useLocalStorage<Friend[]>('friends', baseFriends);
+  const [friends, setFriends] = useLocalStorage<Friend[]>('friends', []);
 
   const getFinalPrice = (date: string) => {
     if (!date) return price;
@@ -66,9 +66,9 @@ export function CRA() {
   useEffect(() => {
     if (!otherDate || !otherName) return;
 
-    if (friends.find((friend) => friend.name === otherName)) {
+    if (friends.find((friend) => friend.date === otherDate)) {
       setFriends((friends) =>
-        friends.map((friend) => (friend.name === otherName ? { ...friend, date: otherDate } : friend)),
+        friends.map((friend) => (friend.date === otherDate ? { ...friend, name: otherName } : friend)),
       );
     } else {
       setFriends((friends) => [...friends, { name: otherName, date: otherDate }]);
@@ -91,9 +91,7 @@ export function CRA() {
   return (
     <Flex className="p-4 m-4" flexDirection="col">
       <Card className="flex flex-col items-center justify-center gap-4">
-        <Metric className="new-custom-metric" data-testid="metric-2">
-          Coefficient relatif à l&apos;ancienneté
-        </Metric>
+        <Metric className="text-center text-xl">Coefficient relatif à l&apos;ancienneté</Metric>
         <Title className="mt-4">Mon ancienneté</Title>
         <Flex justifyContent="center">
           <DatePicker
@@ -151,11 +149,12 @@ export function CRA() {
           Prix corrigé : {getFinalPrice(data.isSeller ? data.myDate : otherDate)?.toFixed(2)}
         </Title>
       </Card>
+      {/* Used to display a space between the two cards */}
       <Flex className="w-8 h-8" style={{ visibility: 'hidden' }}>
         <Title>xxx</Title>
       </Flex>
       <Card className="ml-8 flex flex-col items-center justify-center gap-4">
-        <Metric>Mes amis</Metric>
+        <Metric className="text-center text-xl">Mes amis</Metric>
         <Grid className="grid grid-cols-1 gap-4">
           <Table>
             <TableHead>
@@ -169,25 +168,27 @@ export function CRA() {
             </TableHead>
 
             <TableBody>
-              {data.friends ? (
-                data.friends.map((friend, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{friend.name} </TableCell>
-                    <TableCell>{getFinalPrice(friend.date)?.toFixed(2)}</TableCell>
-                    <TableCell>{new Date(friend.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</TableCell>
-                    <TableCell>{getDays(friend.date)} DUs créés</TableCell>
-                    {index >= baseFriends.length && (
-                      <Flex className="py-1">
-                        <Icon
-                          className="text-red-500 cursor-pointer"
-                          size="lg"
-                          icon={RiCloseCircleLine}
-                          onClick={() => setFriends((friends) => friends.filter(({ name }) => name !== friend.name))}
-                        />
-                      </Flex>
-                    )}
-                  </TableRow>
-                ))
+              {isReady ? (
+                baseFriends
+                  .concat(data.friends?.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) ?? [])
+                  .map((friend, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{friend.name} </TableCell>
+                      <TableCell>{getFinalPrice(friend.date)?.toFixed(2)}</TableCell>
+                      <TableCell>{new Date(friend.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</TableCell>
+                      <TableCell>{getDays(friend.date)} DUs créés</TableCell>
+                      {!baseFriends.some(({ name }) => name === friend.name) && (
+                        <Flex className="py-1">
+                          <Icon
+                            className="text-red-500 cursor-pointer"
+                            size="lg"
+                            icon={RiCloseCircleLine}
+                            onClick={() => setFriends((friends) => friends.filter(({ name }) => name !== friend.name))}
+                          />
+                        </Flex>
+                      )}
+                    </TableRow>
+                  ))
               ) : (
                 <TableRow>
                   <TableCell colSpan={4}>
