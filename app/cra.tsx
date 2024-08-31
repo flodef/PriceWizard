@@ -110,7 +110,7 @@ export function CRA() {
         <Title className="mt-4">Mon rôle</Title>
         <Flex className="mx-auto items-center justify-center">
           <Text>Vendeur</Text>
-          <Switch className="flex mx-2" checked={data.isSeller} onChange={(s) => setIsSeller(!s)} />
+          <Switch className="flex mx-2" checked={data.isSeller} onChange={setIsSeller} />
           <Text>Acheteur</Text>
         </Flex>
         <Title className="mt-4">Nom {!data.isSeller ? "de l'acheteur" : 'du vendeur'}</Title>
