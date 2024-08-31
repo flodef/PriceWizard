@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Price Wizard",
-  description: "Estimateur de prix",
+  description: "Accorder les valeurs, estimations relatives ",
 }; 
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className="antialiased h-full" lang="fr" >
+    <html className="antialiased" lang="fr" >
       <body className={inter.className}>{children}</body>
     </html>
   );

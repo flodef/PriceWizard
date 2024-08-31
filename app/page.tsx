@@ -10,9 +10,9 @@ export default function Home() {
       <TabGroup>
         <Flex justifyContent="center">
           <TabList variant="solid">
-            <Tab>Coeff ancienneté</Tab>
-            <Tab disabled>Coeff quantité</Tab>
-            <Tab disabled>Coeff M / N</Tab>
+            <Tab>Ancienneté</Tab>
+            <Tab disabled>Quantité</Tab>
+            <Tab disabled>Moyenne (M / N)</Tab>
           </TabList>
         </Flex>
         <TabPanels>
