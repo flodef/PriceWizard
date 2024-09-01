@@ -68,6 +68,11 @@ export function CRA() {
     }
   }, [otherDate, otherName, friends, setFriends]);
 
+  const removeFriend = useCallback(
+    (name: string) => setFriends((friends) => friends.filter((friend) => friend.name !== name)),
+    [setFriends],
+  );
+
   const data = useMemo(
     () =>
       isReady
@@ -215,7 +220,7 @@ export function CRA() {
                       <TableCell className="py-1">
                         <Tooltip color="danger" content="Effacer ami">
                           <span className="text-lg text-danger cursor-pointer active:opacity-50">
-                            <RiCloseCircleLine />
+                            <RiCloseCircleLine onClick={() => removeFriend(friend.name)} />
                           </span>
                         </Tooltip>
                       </TableCell>
