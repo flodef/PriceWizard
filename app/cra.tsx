@@ -1,29 +1,18 @@
-import { RiCloseCircleLine } from '@remixicon/react';
-import {
-  Card,
-  DatePicker,
-  DatePickerValue,
-  Flex,
-  Grid,
-  Icon,
-  Metric,
-  NumberInput,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeaderCell,
-  TableRow,
-  Text,
-  TextInput,
-  Title,
-} from '@tremor/react';
-import { useEffect, useMemo, useState } from 'react';
+import { parseDate } from '@internationalized/date';
+import { Button } from '@nextui-org/button';
+import { Card } from '@nextui-org/card';
+import { DatePicker } from '@nextui-org/date-picker';
+import { Input } from '@nextui-org/input';
+import { Spacer } from '@nextui-org/spacer';
+import { Switch } from '@nextui-org/switch';
+import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@nextui-org/table';
+import { Tooltip } from '@nextui-org/tooltip';
+import { RiAddLine, RiCloseCircleLine, RiLoopRightLine } from '@remixicon/react';
+import { useCallback, useMemo, useState } from 'react';
+import { Flex, Metric, Text, Title } from './components/main';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useWindowParam } from './hooks/useWindowParam';
 
-const convertDate = (date?: DatePickerValue) => (date ? dateToString(new Date(date.toDateString())) : '');
 const dateToString = (date: Date) =>
   date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
 
@@ -32,9 +21,11 @@ interface Friend {
   date: string;
 }
 
+const Block0Date = '2017-03-08';
+const TodayDate = dateToString(new Date());
 const baseFriends: Friend[] = [
-  { name: 'Bloc 0', date: '2017-03-08' },
-  { name: 'Newbie', date: dateToString(new Date()) },
+  { name: 'Bloc 0', date: Block0Date },
+  { name: 'Newbie', date: TodayDate },
 ];
 
 const getDays = (date: string | undefined) => {
@@ -48,32 +39,34 @@ const getDays = (date: string | undefined) => {
 export function CRA() {
   const { isReady } = useWindowParam();
 
-  const [price, setPrice] = useLocalStorage('price', 1);
-  const [discount, setDiscount] = useLocalStorage('discount', 0);
-  const [myDate, setMyDate] = useLocalStorage('myDate', '');
+  const [price, setPrice] = useLocalStorage('price', '1');
+  const [discount, setDiscount] = useLocalStorage('discount', '0');
+  const [myDate, setMyDate] = useLocalStorage<string | undefined>('myDate', undefined);
   const [isSeller, setIsSeller] = useLocalStorage('isSeller', true);
   const [otherName, setOtherName] = useState('');
-  const [otherDate, setOtherDate] = useState('');
+  const [otherDate, setOtherDate] = useState<string | undefined>();
   const [friends, setFriends] = useLocalStorage<Friend[]>('friends', []);
 
-  const getFinalPrice = (date: string) => {
-    if (!date) return price;
-    if (!myDate || !otherDate) return;
+  const getFinalPrice = (date: string | undefined) => {
+    if (!date) return Number(price);
+    if (!myDate || !otherDate) return 0;
     const ratio = date ? (!isSeller ? getDays(date) / getDays(myDate) : getDays(date) / getDays(otherDate)) : 1;
-    return (1 - discount / 100) * price + (discount / 100) * price * ratio;
+    const d = Number(discount) / 100;
+    const p = Number(price);
+    return (1 - d) * p + d * p * ratio;
   };
 
-  useEffect(() => {
+  const addFriend = useCallback(() => {
     if (!otherDate || !otherName) return;
 
-    if (friends.find((friend) => friend.date === otherDate)) {
+    if (friends.some((friend) => friend.name === otherName)) {
       setFriends((friends) =>
-        friends.map((friend) => (friend.date === otherDate ? { ...friend, name: otherName } : friend)),
+        friends.map((friend) => (friend.name === otherName ? { ...friend, date: otherDate } : friend)),
       );
     } else {
       setFriends((friends) => [...friends, { name: otherName, date: otherDate }]);
     }
-  }, [otherDate, otherName]); //eslint-disable-line
+  }, [otherDate, otherName, friends, setFriends]);
 
   const data = useMemo(
     () =>
@@ -89,116 +82,161 @@ export function CRA() {
     [myDate, isSeller, price, discount, friends, isReady],
   );
   return (
-    <Flex className="p-4 m-4" flexDirection="col">
+    <Flex className="p-4 m-4" flexDirection="column">
       <Card className="flex flex-col items-center justify-center gap-4">
-        <Metric className="text-center text-xl">Coefficient relatif à l&apos;ancienneté</Metric>
-        <Title className="mt-4">Mon ancienneté</Title>
-        <Flex justifyContent="center">
+        <Metric>Coefficient relatif à l&apos;ancienneté</Metric>
+        <Flex justifyContent="center" style={{ gap: '1rem' }}>
           <DatePicker
-            className="w-40 mr-4"
-            placeholder="Date de création"
-            enableYearNavigation={true}
-            weekStartsOn={1}
-            displayFormat="dd/MM/yyyy"
-            value={data.myDate ? new Date(data.myDate) : undefined}
-            onValueChange={(d) => setMyDate(convertDate(d))}
+            label="Mon ancienneté"
+            showMonthAndYearPickers
+            minValue={parseDate(Block0Date)}
+            maxValue={parseDate(TodayDate)}
+            value={data.myDate ? parseDate(data.myDate) : undefined}
+            onChange={(d) => setMyDate(d.toString())}
           />
-          <Text>{getDays(data.myDate) || 0} DUs créés</Text>
+          <Text style={{ alignSelf: 'center' }}>{getDays(data.myDate) || 0} DUs créés</Text>
         </Flex>
-        <Title className="mt-4">Mon rôle</Title>
         <Flex className="mx-auto items-center justify-center">
+          <Title className="mt-4">Mon rôle :</Title>
+          <Spacer x={4} />
           <Text>Vendeur</Text>
-          <Switch className="flex mx-2" checked={data.isSeller} onChange={setIsSeller} />
+          <Switch
+            style={{ marginLeft: '0.5rem' }}
+            color="warning"
+            checked={data.isSeller}
+            onValueChange={setIsSeller}
+          />
           <Text>Acheteur</Text>
         </Flex>
-        <Title className="mt-4">Nom {!data.isSeller ? "de l'acheteur" : 'du vendeur'}</Title>
-        <TextInput
-          className="w-40"
-          placeholder={'Nom ' + (!data.isSeller ? "de l'acheteur" : 'du vendeur')}
-          value={otherName}
-          onValueChange={setOtherName}
-        />
-        <Title className="mt-4">
-          Ancienneté {otherName ? 'de ' + otherName : !data.isSeller ? "de l'acheteur" : 'du vendeur'}
-        </Title>
-        <DatePicker
-          className="w-40"
-          placeholder="Date de création"
-          enableYearNavigation={true}
-          weekStartsOn={1}
-          displayFormat="dd/MM/yyyy"
-          value={otherDate ? new Date(otherDate) : undefined}
-          onValueChange={(d) => setOtherDate(convertDate(d))}
-        />
+        <Flex justifyContent="center" style={{ gap: '1rem' }}>
+          <Input
+            label={'Nom ' + (!data.isSeller ? "de l'acheteur" : 'du vendeur')}
+            style={{ border: 0 }}
+            className="focus:border-none"
+            value={otherName}
+            onValueChange={setOtherName}
+          />
+          <Tooltip
+            color="warning"
+            content={friends.some((f) => f.name === otherName) ? 'Mettre à jour' : 'Ajouter ami'}
+          >
+            <Button
+              style={{ alignSelf: 'center' }}
+              color="warning"
+              radius="full"
+              size="sm"
+              isDisabled={!otherName || !otherDate || friends.some((f) => f.name === otherName && f.date === otherDate)}
+              onClick={addFriend}
+              isIconOnly
+            >
+              {friends.some((f) => f.name === otherName) ? <RiLoopRightLine /> : <RiAddLine />}
+            </Button>
+          </Tooltip>
+        </Flex>
+        <Title className="mt-4"></Title>
+        <Flex justifyContent="center" style={{ gap: '1rem' }}>
+          <DatePicker
+            label={'Ancienneté ' + (otherName ? 'de ' + otherName : !data.isSeller ? "de l'acheteur" : 'du vendeur')}
+            showMonthAndYearPickers
+            minValue={parseDate(Block0Date)}
+            maxValue={parseDate(TodayDate)}
+            value={otherDate ? parseDate(otherDate) : undefined}
+            onChange={(d) => setOtherDate(d?.toString())}
+          />
+          <Text style={{ alignSelf: 'center' }}>{getDays(otherDate) || 0} DUs créés</Text>
+        </Flex>
         <Title className="mt-4 hidden">
           Ratio : {otherDate && data.myDate ? (getDays(otherDate) / getDays(data.myDate)).toFixed(2) : 1}
         </Title>
-        <Title className="mt-4">Prix de ref. (en DUs)</Title>
-        <NumberInput className="w-40" style={{ width: 160 }} min={0} value={data.price} onValueChange={setPrice} />
-        <Title className="mt-4">Réduction newbie (en %)</Title>
-        <NumberInput
+        <Input
           className="w-40"
-          style={{ width: 160 }}
+          style={{ width: 100, border: 0 }}
+          type="number"
+          label="Prix de réf."
+          placeholder="0.00"
+          labelPlacement="outside-left"
+          min={0}
+          step={0.5}
+          value={data.price ?? '1'}
+          onValueChange={setPrice}
+          startContent={
+            <div className="pointer-events-none flex items-center">
+              <span className="text-default-400 text-small">DU</span>
+            </div>
+          }
+        />
+        <Input
+          className="w-40"
+          style={{ width: 100, border: 0 }}
+          type="number"
+          label="Réduction newbie"
+          placeholder="0"
+          labelPlacement="outside-left"
           min={0}
           max={100}
           step={25}
-          value={data.discount}
+          value={data.discount ?? '0'}
           onValueChange={setDiscount}
+          startContent={
+            <div className="pointer-events-none flex items-center">
+              <span className="text-default-400 text-small">%</span>
+            </div>
+          }
         />
         <Title className="mt-4">
-          Prix corrigé : {getFinalPrice(data.isSeller ? data.myDate : otherDate)?.toFixed(2)}
+          Prix corrigé : {getFinalPrice(data.isSeller ? data.myDate : otherDate).toFixed(2)}
         </Title>
       </Card>
-      {/* Used to display a space between the two cards */}
       <Flex className="w-8 h-8" style={{ visibility: 'hidden' }}>
         <Title>xxx</Title>
       </Flex>
       <Card className="ml-8 flex flex-col items-center justify-center gap-4">
         <Metric className="text-center text-xl">Mes amis</Metric>
-        <Grid className="grid grid-cols-1 gap-4">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Nom</TableHeaderCell>
-                <TableHeaderCell>Prix corrigé</TableHeaderCell>
-                <TableHeaderCell>Date création</TableHeaderCell>
-                <TableHeaderCell>Nombre de DUs</TableHeaderCell>
-                <TableHeaderCell></TableHeaderCell>
-              </TableRow>
-            </TableHead>
+        <Table isStriped>
+          <TableHeader>
+            <TableColumn>NOM</TableColumn>
+            <TableColumn>PRIX CORRIGÉ</TableColumn>
+            <TableColumn>DATE CRÉATION</TableColumn>
+            <TableColumn>NOMBRE DE DU</TableColumn>
+            <TableColumn> </TableColumn>
+          </TableHeader>
 
-            <TableBody>
-              {isReady ? (
-                baseFriends
-                  .concat(data.friends?.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) ?? [])
-                  .map((friend, index) => (
-                    <TableRow key={index}>
-                      <TableCell>{friend.name} </TableCell>
-                      <TableCell>{getFinalPrice(friend.date)?.toFixed(2)}</TableCell>
-                      <TableCell>{new Date(friend.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</TableCell>
-                      <TableCell>{getDays(friend.date)} DUs créés</TableCell>
-                      {!baseFriends.some(({ name }) => name === friend.name) && (
-                        <Flex className="py-1">
-                          <Icon
-                            className="text-red-500 cursor-pointer"
-                            size="lg"
-                            icon={RiCloseCircleLine}
-                            onClick={() => setFriends((friends) => friends.filter(({ name }) => name !== friend.name))}
-                          />
-                        </Flex>
-                      )}
-                    </TableRow>
-                  ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4}>
-                    <Text className="text-center">Chargement en cours...</Text>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </Grid>
+          <TableBody emptyContent="Aucun ami :-(">
+            {isReady ? (
+              baseFriends
+                .concat(data.friends?.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) ?? [])
+                .map((friend, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{friend.name} </TableCell>
+                    <TableCell>{getFinalPrice(friend.date)?.toFixed(2)}</TableCell>
+                    <TableCell>{new Date(friend.date).toLocaleDateString('fr-FR', { dateStyle: 'long' })}</TableCell>
+                    <TableCell>{getDays(friend.date)} DUs créés</TableCell>
+                    {!baseFriends.some(({ name }) => name === friend.name) ? (
+                      <TableCell className="py-1">
+                        <Tooltip color="danger" content="Effacer ami">
+                          <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                            <RiCloseCircleLine />
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                    ) : (
+                      <TableCell> </TableCell>
+                    )}
+                  </TableRow>
+                ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5}>
+                  <Text className="text-center">Chargement en cours...</Text>
+                </TableCell>
+                <TableCell> </TableCell>
+                <TableCell> </TableCell>
+                <TableCell> </TableCell>
+                <TableCell> </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </Card>
     </Flex>
   );
