@@ -8,7 +8,11 @@ type FlexProps = {
   // Add any other props you want to define here
 };
 
-export const Flex = styled.div<FlexProps>`
+// export const Flex = styled.div<FlexProps>`
+export const Flex = styled.div.withConfig({
+  shouldForwardProp: (prop, defaultValidatorFn) =>
+    !['flexDirection', 'justifyContent', 'alignItems', 'flexWrap'].includes(prop),
+})<FlexProps>`
   display: flex;
   flex-direction: ${(props) => props.flexDirection || 'row'};
   justify-content: ${(props) => props.justifyContent || 'flex-start'};
