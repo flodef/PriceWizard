@@ -4,6 +4,7 @@ import { Card, CardBody } from '@nextui-org/card';
 import { DatePicker } from '@nextui-org/date-picker';
 import { Input } from '@nextui-org/input';
 import { Spinner } from '@nextui-org/react';
+import { Select, SelectItem } from '@nextui-org/select';
 import { Spacer } from '@nextui-org/spacer';
 import { Switch } from '@nextui-org/switch';
 import { SortDescriptor, Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from '@nextui-org/table';
@@ -17,6 +18,11 @@ import { cls, inputClassNames } from '../utils';
 
 const dateToString = (date: Date) =>
   date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+
+enum Currencies {
+  DU = 'DU',
+  G1 = 'G1',
+}
 
 type Friend = {
   name: string;
@@ -56,6 +62,7 @@ export function CRA() {
   const [discount, setDiscount] = useLocalStorage('discount', '0');
   const [myDate, setMyDate] = useLocalStorage<string | undefined>('myDate', undefined);
   const [isSeller, setIsSeller] = useLocalStorage('isSeller', true);
+  const [currency, setCurrency] = useLocalStorage('currency', 'DU');
   const [otherName, setOtherName] = useState('');
   const [otherDate, setOtherDate] = useState<string | undefined>();
   const [friends, setFriends] = useLocalStorage<Friend[]>('friends', []);
@@ -240,12 +247,33 @@ export function CRA() {
             placeholder="0.00"
             labelPlacement="outside-left"
             min={0}
-            step={0.5}
+            step={Math.ceil(Number(price) / 10 / 2)}
             value={data.price ?? '1'}
-            onValueChange={setPrice}
-            startContent={
-              <div className="pointer-events-none flex items-center">
-                <span className="text-default-400 text-small">DU</span>
+            onValueChange={(p) => setPrice(Math.min(Number(p), 9999).toString())}
+            endContent={
+              <div className="flex items-center">
+                <label className="sr-only" htmlFor="currency">
+                  Currency
+                </label>
+                <select
+                  id="currency"
+                  className="outline-none border-0 bg-transparent text-default-400 text-small cursor-pointer"
+                  value={currency}
+                  onChange={(e) => {
+                    setCurrency(e.target.value);
+                    setPrice('1');
+                  }}
+                >
+                  {Object.values(Currencies).map((c) => (
+                    <option
+                      key={c}
+                      value={c}
+                      className="bg-content3 dark:bg-content3 hover:dark:bg-blue-900 hover:dark:text-white"
+                    >
+                      {c}
+                    </option>
+                  ))}
+                </select>
               </div>
             }
           />
@@ -257,11 +285,10 @@ export function CRA() {
             placeholder="0"
             labelPlacement="outside-left"
             min={0}
-            max={100}
-            step={25}
+            step={Math.ceil(Number(discount) / 10 / 2)}
             value={data.discount ?? '0'}
-            onValueChange={setDiscount}
-            startContent={
+            onValueChange={(p) => setDiscount(Math.min(Number(p), 99).toString())}
+            endContent={
               <div className="pointer-events-none flex items-center">
                 <span className="text-default-400 text-small">%</span>
               </div>
