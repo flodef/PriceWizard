@@ -45,6 +45,10 @@ const getDays = (date: string | undefined) => {
   return Math.floor(days);
 };
 
+const getRatio = (date1: string | undefined, date2: string | undefined) => {
+  return getDays(date1) / Math.max(getDays(date2), 1);
+};
+
 export function CRA() {
   const { isReady } = useWindowParam();
 
@@ -58,9 +62,12 @@ export function CRA() {
 
   const getFinalPrice = useCallback(
     (date: string | undefined) => {
-      if (!date) return Number(price);
-      if (!myDate || !otherDate) return 0;
-      const ratio = date ? (!isSeller ? getDays(date) / getDays(myDate) : getDays(date) / getDays(otherDate)) : 1;
+      if ((!date && !myDate) || (!date && !otherDate)) return Number(price);
+      const ratio = date
+        ? myDate && (!isSeller || !otherDate)
+          ? getRatio(date, myDate)
+          : getRatio(date, otherDate)
+        : 1;
       const d = Number(discount) / 100;
       const p = Number(price);
       return (1 - d) * p + d * p * ratio;
