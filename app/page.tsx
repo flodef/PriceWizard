@@ -24,7 +24,7 @@ export default function Home() {
           <Card className="sm:max-w-screen-sm">
             <CardBody>
               <Metric className="pb-5" fontSize="1.75rem">
-                Price Wizard
+                Grate Wizard
               </Metric>
               <Tabs className="self-center" color="warning" radius="full" size="sm" disabledKeys={['2', '3']}>
                 <Tab key="1" title="Ancienneté">

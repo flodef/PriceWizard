@@ -5,7 +5,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Price Wizard',
+  title: 'Grate Wizard',
   description: 'Accorder les valeurs, estimations relatives ',
 };
 
